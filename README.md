@@ -1,4 +1,5 @@
-## Proyecto de Hardening de Servidores Linux con Ansible
+# Proyecto de Hardening de Servidores Linux con Ansible
+
 Este proyecto automatiza el proceso de hardening de servidores Linux utilizando Ansible, asegurando que los sistemas cumplan con las mejores prácticas de seguridad y estándares como CIS Benchmarks.
 
 Características del Proyecto
