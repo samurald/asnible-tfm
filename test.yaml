@@ -1,0 +1,22 @@
+---
+- name: Securizar SSH - Deshabilitar acceso con contraseñas vacías
+  hosts: all
+  become: yes  # Eleva permisos para modificar archivos de configuración del sistema
+  tasks:
+    - name: Asegurar que PermitEmptyPasswords esté deshabilitado
+      lineinfile:
+        path: /etc/ssh/sshd_config  # Archivo de configuración SSH
+        create: yes  # Si no existe, crea el archivo
+        regexp: '^#?PermitEmptyPasswords'  # Busca la línea (comentada o no)
+        line: 'PermitEmptyPasswords no'  # Inserta o reemplaza la línea con la configuración correcta
+        state: present  # Asegura que la línea esté presente
+        insertbefore: '^#PermitRootLogin'  # Inserta antes de la directiva PermitRootLogin, si existe
+      notify: 
+        - Reiniciar SSH
+
+  handlers:
+    - name: Reiniciar SSH
+      service:
+        name: sshd
+        state: restarted  # Reinicia el servicio para aplicar los cambios
+

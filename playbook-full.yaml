@@ -1,0 +1,120 @@
+## PLAYBOOK PARA IMPLEMENTACION DE HARDENING  - TFM
+---
+- name: Hardening - TFM
+  hosts: all
+  become: yes
+
+  tasks:
+    # TAREA 1 - Disable SSH Access via Empty Passwords
+    - name: TAREA 1 -  Deshabilitar acceso SSH con contraseñas vacías
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitEmptyPasswords'
+        line: 'PermitEmptyPasswords no'
+        state: present
+      notify: Restart SSH
+
+    # TAREA 2 - Disable SSH Root Login
+    - name: TAREA 2 -  Deshabilitar acceso SSH para root
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin no'
+        state: present
+      notify: Restart SSH
+
+    # TAREA 3 -  Set SSH authentication attempt limit
+    - name: TAREA 3 - Establecer límite de intentos de autenticación SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^MaxAuthTries'
+        line: 'MaxAuthTries 3'
+        state: present
+      notify: Restart SSH
+
+    # TAREA 4 - Set Password Maximum Age
+    - name: TAREA 4 -  Establecer la edad máxima de la contraseña
+      lineinfile:
+        path: /etc/login.defs
+        regexp: '^PASS_MAX_DAYS'
+        line: 'PASS_MAX_DAYS 90'
+        state: present
+
+    # TAREA 5 -  Install AIDE
+    - name: TAREA 5 -  Instalar AIDE (Advanced Intrusion Detection Environment)
+      package:
+        name: aide
+        state: present
+
+    - name: Inicializar AIDE
+      command: /usr/sbin/aide --init
+      args:
+        creates: /var/lib/aide/aide.db.new.gz
+          
+   # TAREA 6 - Firewall para agregar loopback a zona de confianza
+    - name: TAREA 6 -  Agregar interfaz loopback a la zona de confianza con firewall-offline-cmd
+      command: firewall-offline-cmd --zone=trusted --add-interface=lo
+
+    - name: Recargar firewalld para aplicar cambios
+      service:
+        name: firewalld
+        state: restarted
+
+    # TAREA 7 - DESACTIVAR XDMCP EN GDM
+    - name: TAREA 7 - Desactivar XDMCP en GDM | Gather the package facts
+      package_facts:
+        manager: auto
+      tags:
+        - gnome_gdm_disable_xdmcp
+
+    - name: Disable XDMCP in GDM
+      ini_file:
+        path: /etc/gdm/custom.conf
+        section: xdmcp
+        option: Enable
+        value: 'false'
+        create: true
+        mode: 420
+      when: '"gdm" in ansible_facts.packages'
+      tags:
+        - gnome_gdm_disable_xdmcp
+
+    - name: Ensure GDM service is restarted
+      service:
+        name: gdm
+        state: restarted
+      when: '"gdm" in ansible_facts.packages'
+      tags:
+        - gnome_gdm_disable_xdmcp
+
+
+     # TAREA 8 - Disable Kernel Parameter for Accepting Secure ICMP Redirects on all IPv4 Interfaces
+    - name: TAREA 8 - Disable Kernel Parameter IPV4s
+      lineinfile:
+        path: /etc/sysctl.conf
+        regexp: '^net.ipv4.conf.all.secure_redirects'
+        line: 'net.ipv4.conf.all.secure_redirects = 0'
+        create: yes
+      tags:
+        - kernel
+        - security
+
+    - name: Aplicar la configuración del parámetro del kernel
+      sysctl:
+        name: net.ipv4.conf.all.secure_redirects
+        value: '0'
+        state: present
+        reload: yes
+      tags:
+        - kernel
+        - security
+
+      
+## Handler para las tareas SSH
+  handlers:
+    - name: Restart SSH
+      service:
+        name: sshd
+        state: restarted
+
+

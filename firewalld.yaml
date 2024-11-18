@@ -1,0 +1,25 @@
+---
+- name: Deshabilitar redireccionamientos ICMP seguros en todas las interfaces IPv4
+  hosts: all
+  become: yes
+  tasks:
+    - name: Configurar el parámetro del kernel para deshabilitar ICMP Secure Redirects en /etc/sysctl.conf
+      lineinfile:
+        path: /etc/sysctl.conf
+        regexp: '^net.ipv4.conf.all.secure_redirects'
+        line: 'net.ipv4.conf.all.secure_redirects = 0'
+        create: yes
+      tags:
+        - kernel
+        - security
+
+    - name: Aplicar la configuración del parámetro del kernel
+      sysctl:
+        name: net.ipv4.conf.all.secure_redirects
+        value: '0'
+        state: present
+        reload: yes
+      tags:
+        - kernel
+        - security
+

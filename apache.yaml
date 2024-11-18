@@ -1,0 +1,16 @@
+---
+- name: Instalar y habilitar Apache en servidores Linux
+  hosts: all  # Se ejecuta en todos los hosts del inventario
+  become: no  # Se necesitan permisos elevados (root)
+  tasks:
+    - name: Instalar Apache
+      yum:
+        name: httpd  # Paquete de Apache en RHEL/AlmaLinux/CentOS
+        state: present  # Asegura que esté instalado
+
+    - name: Iniciar el servicio de Apache
+      service:
+        name: httpd  # Nombre del servicio de Apache
+        state: started  # Asegura que el servicio esté iniciado
+        enabled: yes  # Habilita el servicio para que inicie al arrancar el sistema
+
