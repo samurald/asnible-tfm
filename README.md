@@ -10,4 +10,7 @@ Configuración de firewall con ufw o iptables.
 Endurecimiento del kernel.
 Configuración de logs y auditoría con auditd.
 Scripts modularizados para adaptarse a diferentes entornos.
-Capacidad de personalización según los requisitos específicos de la organización.
+Capacidad de personalización según los requisitos específicos de la organización
+
+
+TEST 1234
